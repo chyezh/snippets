@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# obtain the script installed path.
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Start Milvus server
+if [[ -z "${MILVUS_DEV_PATH}" ]]; then
+    echo "MILVUS_DEV_PATH is not set or is empty"
+    exit 1
+fi
+echo "MILVUS_DEV_PATH: ${MILVUS_DEV_PATH}"
+
+if [[ -z "${MILVUS_VOLUME_DIRECTORY}" ]]; then
+    echo "MILVUS_VOLUME_DIRECTORY is not set or is empty"
+    exit 1
+fi
+echo "MILVUS_VOLUME_DIRECTORY: ${MILVUS_VOLUME_DIRECTORY}"
+
+# Function to display usage
+usage() {
+    echo "Usage: $0 start | stop"
+    exit 1
+}
+
+while getopts "f:c:s" arg; do
+    case $arg in
+    f)
+        FORCED=$OPTARG
+        ;;
+    c)
+        CLUSTER=true
+        ;;
+    s)
+        STREAMING=true
+        ;;
+    *)
+        # Handle unrecognized flags here
+        ;;
+    esac
+done
+
+function generate_new_volume_directory() {
+    if [[ -z "${WORKSPACE_TAG}" ]]; then
+        WORKSPACE_TAG=$(date +%F-%H-%M-%S)
+        echo "WORKSPACE_TAG is not set, use current time as tag: ${WORKSPACE_TAG}"
+    fi
+    NEW_VOLUME_DIRECTORY="${MILVUS_VOLUME_DIRECTORY}/${WORKSPACE_TAG}"
+    mkdir -p "${NEW_VOLUME_DIRECTORY}" || exit 1
+    echo "NEW_VOLUME_DIRECTORY: ${NEW_VOLUME_DIRECTORY}"
+}
+
+function start_milvus_inf() {
+    if [[ -z "${NEW_VOLUME_DIRECTORY}" ]]; then
+        generate_new_volume_directory
+    fi
+    pushd "$SCRIPT_PATH" || exit 1
+    DOCKER_VOLUME_DIRECTORY="${NEW_VOLUME_DIRECTORY}/docker-volumes/" docker compose up -d
+    popd || exit 1
+}
+
+function stop_milvus_inf() {
+    pushd "$SCRIPT_PATH" || exit 1
+    docker compose down
+    popd || exit 1
+}
+
+function start_milvus() {
+    if [[ -z "${NEW_VOLUME_DIRECTORY}" ]]; then
+        generate_new_volume_directory
+    fi
+    LOG_PATH="${NEW_VOLUME_DIRECTORY}/milvus-logs/"
+    mkdir -p "${LOG_PATH}" || exit 1
+
+    pushd "$MILVUS_DEV_PATH" || exit 1
+    source "./scripts/setenv.sh"
+    if [[ -z "${CLUSTER}" ]]; then
+        if [[ -z "${STREAMING}" ]]; then
+            echo "Starting milvus standalone without streaming service... Log@ ${LOG_PATH}"
+            ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout" 2>"${LOG_PATH}/standalone.stderr" &
+        else
+            echo "Starting milvus standalone with streaming service... Log@ ${LOG_PATH}"
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout" 2>"${LOG_PATH}/standalone.stderr" &
+        fi
+    else
+        if [[ -z "${STREAMING}" ]]; then
+            echo "Starting milvus cluster without streaming service... Log@ ${LOG_PATH}"
+            ./bin/mivlus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
+            ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
+            ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
+            ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
+            ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
+        else
+            echo "Starting milvus cluster with streaming service... Log@ ${LOG_PATH}"
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/mivlus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
+            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout" 2>"${LOG_PATH}/streamingnode.stderr" &
+        fi
+    fi
+    popd || exit 1
+}
+
+function stop_milvus() {
+    if [[ -z "${FORCED}" ]]; then
+        echo "Stopping Milvus server..."
+        killall milvus
+    else
+        echo "Force stopping Milvus server..."
+        killall -9 milvus
+    fi
+}
+
+# Handle options
+case "$1" in
+start_milvus_inf)
+    start_milvus_inf
+    ;;
+stop_milvus_inf)
+    stop_milvus_inf
+    ;;
+start_milvus)
+    start_milvus_inf
+    start_milvus
+    ;;
+stop_milvus)
+    stop_milvus
+    stop_milvus_inf
+    ;;
+*)
+    usage
+    ;;
+esac
+
+# Check if no option was provided
+if [ $# -eq 0 ]; then
+    usage
+fi
