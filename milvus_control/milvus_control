@@ -18,26 +18,37 @@ echo "MILVUS_VOLUME_DIRECTORY: ${MILVUS_VOLUME_DIRECTORY}"
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 start | stop"
+    echo "Usage: $0 [-f -a -c -s] [start_milvus|start_milvus_inf|stop_milvus|stop_milvus_inf]"
     exit 1
 }
 
-while getopts "f:c:s" arg; do
+ASAN_ENABLED=true
+
+while getopts fcsa arg; do
     case $arg in
     f)
-        FORCED=$OPTARG
+        FORCED=1
         ;;
     c)
-        CLUSTER=true
+        CLUSTER=1
         ;;
     s)
-        STREAMING=true
+        STREAMING=1
+        ;;
+    a)
+        ASAN_ENABLED=1
         ;;
     *)
+        usage
+        exit 1
         # Handle unrecognized flags here
         ;;
     esac
 done
+
+shift $(($OPTIND - 1))
+
+exit 1
 
 function generate_new_volume_directory() {
     if [[ -z "${WORKSPACE_TAG}" ]]; then
@@ -73,30 +84,35 @@ function start_milvus() {
 
     pushd "$MILVUS_DEV_PATH" || exit 1
     source "./scripts/setenv.sh"
+
+    if [[ -n "${ASAN_ENABLED}" ]]; then
+        echo "Use ASAN, disable jemalloc..."
+        export LD_PRELOAD=""
+    fi
+
+    if [[ -n "${STREAMING}" ]]; then
+        echo "Use streaming service..."
+        export MILVUS_STREAMING_SERVICE_ENABLED=1
+    fi
+
     if [[ -z "${CLUSTER}" ]]; then
-        if [[ -z "${STREAMING}" ]]; then
-            echo "Starting milvus standalone without streaming service... Log@ ${LOG_PATH}"
-            ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout" 2>"${LOG_PATH}/standalone.stderr" &
-        else
-            echo "Starting milvus standalone with streaming service... Log@ ${LOG_PATH}"
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout" 2>"${LOG_PATH}/standalone.stderr" &
-        fi
+        echo "Starting milvus standalone... Log@ ${LOG_PATH}"
+        ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout" 2>"${LOG_PATH}/standalone.stderr" &
     else
+        echo "Starting milvus cluster... Log@ ${LOG_PATH}"
         if [[ -z "${STREAMING}" ]]; then
-            echo "Starting milvus cluster without streaming service... Log@ ${LOG_PATH}"
             ./bin/mivlus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
             ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
             ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
             ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
             ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
         else
-            echo "Starting milvus cluster with streaming service... Log@ ${LOG_PATH}"
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/mivlus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
-            MILVUS_STREAMING_SERVICE_ENABLED=1 ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout" 2>"${LOG_PATH}/streamingnode.stderr" &
+            ./bin/mivlus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
+            ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
+            ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
+            ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
+            ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
+            ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout" 2>"${LOG_PATH}/streamingnode.stderr" &
         fi
     fi
     popd || exit 1
