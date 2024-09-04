@@ -40,15 +40,12 @@ while getopts fcsa arg; do
         ;;
     *)
         usage
-        exit 1
         # Handle unrecognized flags here
         ;;
     esac
 done
 
 shift $(($OPTIND - 1))
-
-exit 1
 
 function generate_new_volume_directory() {
     if [[ -z "${WORKSPACE_TAG}" ]]; then
