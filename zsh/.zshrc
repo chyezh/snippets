@@ -92,7 +92,7 @@ source $ZSH/oh-my-zsh.sh
 export REPOSITORY_PATH="$HOME/repository"
 export MILVUS_DEV_PATH="$REPOSITORY_PATH/chyezh/milvus"
 export MILVUS_VOLUME_DIRECTORY="$HOME/tmp/milvus-volumes"
-export PATH="$PATH:$HOME/.bin:/home/chyezh/repository/chyezh/snippets/milvus_control"
+export PATH="$PATH:$HOME/.bin:$REPOSITORY_PATH/chyezh/snippets/milvus_control:$REPOSITORY_PATH/chyezh/snippets/utility"
 
 # Compilation flags
 # export ARCHFLAGS="-arch $(uname -m)"

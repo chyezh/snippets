@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+VERSION=$1
+
+cd /usr/bin
+
+if [ ! -f "gcc-${VERSION}" ]; then
+    echo "gcc-${VERSION} not found"
+    exit 1
+fi
+
+unlink gcc && ln -s "gcc-${VERSION}" gcc
+unlink g++ && ln -s "g++-${VERSION}" g++
+unlink gcov && ln -s "gcov-${VERSION}" gcov
