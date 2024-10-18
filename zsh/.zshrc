@@ -111,3 +111,14 @@ export PATH="$PATH:$HOME/.bin:$REPOSITORY_PATH/chyezh/snippets/milvus_control:$R
 #
 
 alias grep=rg
+
+# functions
+
+function jmilvuslv() {
+    TARGET=$(find_last_milvus_volume)
+    if [ ! -d "$TARGET" ]; then
+        echo "Last milvus volume not found: ${TARGET}" >&2
+        return
+    fi
+    cd ${TARGET}
+}

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+VOLUME=$(find_last_milvus_volume)
+
+if [[ -z "${VOLUME}" ]]; then
+    echo "No Milvus volume found" >&2
+    exit 1
+fi
+
+MILVUS_LOG="${VOLUME}/milvus-logs/"
+
+case "$1" in
+e)
+    tail -f "${MILVUS_LOG}/standalone.stderr"
+    ;;
+*)
+    tail -f "${MILVUS_LOG}/standalone.stdout"
+    ;;
+esac
