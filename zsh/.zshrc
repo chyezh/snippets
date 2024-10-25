@@ -110,7 +110,14 @@ export PATH="$PATH:$HOME/.bin:$REPOSITORY_PATH/chyezh/snippets/milvus_control:$R
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 #
 
+alias git_list_branch="git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)' | less"
 alias grep=rg
+
+alias kubectl_qa_milvus="kubectl --kubeconfig ${HOME}/.kubeconfig/qa-milvus.yaml"
+alias kubectl_milvus_ci="kubectl --kubeconfig ${HOME}/.kubeconfig/qa-milvus.yaml --namespace milvus-ci"
+alias kubectl_qa_chaos="kubectl --kubeconfig ${HOME}/.kubeconfig/qa-chaos.yaml"
+alias kubectl_kube_admin="kubectl --kubeconfig ${HOME}/.kubeconfig/kube-admin.yaml"
+alias kubectl_dev_admin="kubectl --kubeconfig ${HOME}/.kubeconfig/dev-admin.yaml"
 
 # functions
 
