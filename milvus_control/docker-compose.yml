@@ -50,23 +50,6 @@ services:
       timeout: 20s
       retries: 3
 
-  #  prometheus:
-  #    container_name: milvus-prometheus
-  #    image: bitnami/prometheus:latest
-  #    volumes:
-  #      - ${DOCKER_VOLUME_DIRECTORY:-.}/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
-  #      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/prometheus/data:/opt/bitnami/prometheus/data
-  #    ports:
-  #      - "9090:9090"
-  #
-  #  grafana:
-  #    container_name: milvus-grafana
-  #    image: grafana/grafana:latest
-  #    volumes:
-  #      - ${DOCKER_VOLUME_DIRECTORY:-.}/grafana:/var/lib/grafana
-  #    ports:
-  #      - "3000:3000"
-
   pulsar:
     image: apachepulsar/pulsar:2.8.2
     volumes:
@@ -91,3 +74,4 @@ services:
 networks:
   default:
     name: milvus_inf
+    external: true
