@@ -22,8 +22,6 @@ usage() {
     exit 1
 }
 
-ASAN_ENABLED=true
-
 while getopts fcsa arg; do
     case $arg in
     f)
