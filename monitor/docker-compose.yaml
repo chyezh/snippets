@@ -1,0 +1,26 @@
+version: '3.5'
+
+services:
+  prometheus:
+    container_name: prometheus
+    image: bitnami/prometheus:latest
+    user: "1000"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/prometheus/data:/opt/bitnami/prometheus/data
+    ports:
+      - "9090:9090"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    user: "1000"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+
+networks:
+  default:
+    name: milvus_inf
+    external: true
