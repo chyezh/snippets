@@ -120,9 +120,29 @@ alias kubectl_kube_admin="kubectl --kubeconfig ${HOME}/.kubeconfig/kube-admin.ya
 alias kubectl_dev_admin="kubectl --kubeconfig ${HOME}/.kubeconfig/dev-admin.yaml"
 
 # functions
-
+# jmilvuslv: jump to last milvus volume directory
 function jmilvuslv() {
-    TARGET=$(find_last_milvus_volume)
+    TARGET=$(find_last_milvus_volume)/docker-volumes
+    if [ ! -d "$TARGET" ]; then
+        echo "Last milvus volume not found: ${TARGET}" >&2
+        return
+    fi
+    cd ${TARGET}
+}
+
+# jmilvusll: jump to last milvus log directory
+function jmilvusll() {
+    TARGET=$(find_last_milvus_volume)/milvus-logs
+    if [ ! -d "$TARGET" ]; then
+        echo "Last milvus volume not found: ${TARGET}" >&2
+        return
+    fi
+    cd ${TARGET}
+}
+
+# jmilvuslt: jump to last milvus test log directory
+function jmilvuslt() {
+    TARGET=$(find_last_milvus_volume)/pytest-logs
     if [ ! -d "$TARGET" ]; then
         echo "Last milvus volume not found: ${TARGET}" >&2
         return

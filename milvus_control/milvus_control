@@ -92,22 +92,22 @@ function start_milvus() {
 
     if [[ -z "${CLUSTER}" ]]; then
         echo "Starting milvus standalone... Log@ ${LOG_PATH}"
-        METRICS_PORT=9091 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout" 2>"${LOG_PATH}/standalone.stderr" &
+        METRICS_PORT=9091 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout.log" 2>"${LOG_PATH}/standalone.stderr.log" &
     else
         echo "Starting milvus cluster... Log@ ${LOG_PATH}"
         if [[ -z "${STREAMING}" ]]; then
-            METRICS_PORT=9091 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
-            METRICS_PORT=9092 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
-            METRICS_PORT=9093 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
-            METRICS_PORT=9094 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
-            METRICS_PORT=9095 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
+            METRICS_PORT=9092 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout.log" 2>"${LOG_PATH}/mixcoord.stderr.log" &
+            METRICS_PORT=9093 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout.log" 2>"${LOG_PATH}/proxy.stderr.log" &
+            METRICS_PORT=9094 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout.log" 2>"${LOG_PATH}/querynode.stderr.log" &
+            METRICS_PORT=9095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
+            METRICS_PORT=9096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
         else
-            METRICS_PORT=9091 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout" 2>"${LOG_PATH}/mixcoord.stderr" &
-            METRICS_PORT=9092 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout" 2>"${LOG_PATH}/proxy.stderr" &
-            METRICS_PORT=9093 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout" 2>"${LOG_PATH}/querynode.stderr" &
-            METRICS_PORT=9094 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout" 2>"${LOG_PATH}/datanode.stderr" &
-            METRICS_PORT=9095 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout" 2>"${LOG_PATH}/indexnode.stderr" &
-            METRICS_PORT=9096 ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout" 2>"${LOG_PATH}/streamingnode.stderr" &
+            METRICS_PORT=9092 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout.log" 2>"${LOG_PATH}/mixcoord.stderr.log" &
+            METRICS_PORT=9093 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout.log" 2>"${LOG_PATH}/proxy.stderr.log" &
+            METRICS_PORT=9094 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout.log" 2>"${LOG_PATH}/querynode.stderr.log" &
+            METRICS_PORT=9095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
+            METRICS_PORT=9096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
+            METRICS_PORT=9097 ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout.log" 2>"${LOG_PATH}/streamingnode.stderr.log" &
         fi
     fi
     popd || exit 1
