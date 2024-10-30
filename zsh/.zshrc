@@ -142,7 +142,7 @@ function jmilvusll() {
 
 # jmilvuslt: jump to last milvus test log directory
 function jmilvuslt() {
-    TARGET=$(find_last_milvus_volume)/pytest-logs
+    TARGET=$(find_last_milvus_volume)/test-logs
     if [ ! -d "$TARGET" ]; then
         echo "Last milvus volume not found: ${TARGET}" >&2
         return
