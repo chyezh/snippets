@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# obtain the script installed path.
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Start Milvus server
+if [[ -z "${MILVUS_DEV_PATH}" ]]; then
+    echo "MILVUS_DEV_PATH is not set or is empty"
+    exit 1
+fi
+echo "MILVUS_DEV_PATH: ${MILVUS_DEV_PATH}"
+
+MILVUS_TEST_PATH="${MILVUS_DEV_PATH}/tests/python_client"
+if [[ ! -d "${MILVUS_TEST_PATH}" ]]; then
+    echo "MILVUS_TEST_PATH is not a directory"
+    exit 1
+fi
+echo "MILVUS_TEST_PATH: ${MILVUS_TEST_PATH}"
+cd "${MILVUS_TEST_PATH}" || exit 1
+
+# Found the last volume, apply test on it.
+LAST_VOLUME=$(find_last_milvus_volume)
+if [[ ! -d "$LAST_VOLUME" ]]; then
+    echo "Found last volume: $LAST_VOLUME, but it is not a directory"
+    exit 1
+fi
+
+TARGET_LOG_DIR="${LAST_VOLUME}/pytest-logs"
+mkdir -p "${TARGET_LOG_DIR}" || exit 1
+
+TIME_LOG="${TARGET_LOG_DIR}/time.log"
+PYTEST_STDOUT="${TARGET_LOG_DIR}/pytest.stdout.log"
+PYTEST_STDERR="${TARGET_LOG_DIR}/pytest.stderr.log"
+PYTEST_LOG="${TARGET_LOG_DIR}/pytest.log"
+PYTEST_CI_REPORT="${TARGET_LOG_DIR}/report.html"
+TIMEOUT=1200
+echo "TIME_LOG: ${TIME_LOG}"
+echo "PYTEST_LOG: ${PYTEST_LOG}"
+echo "PYTEST_STDOUT: ${PYTEST_STDOUT}"
+echo "PYTEST_STDERR: ${PYTEST_STDERR}"
+echo "PYTEST_CI_REPORT: ${PYTEST_CI_REPORT}"
+
+CMD="CI_LOG_PATH=${TARGET_LOG_DIR} /usr/bin/time -o ${TIME_LOG} pytest --html=${PYTEST_CI_REPORT} --self-contained-html \
+-n 6 --tags L0 L1 --timeout ${TIMEOUT} --log-file=${PYTEST_LOG} 1> ${PYTEST_STDOUT} 2> ${PYTEST_STDERR}"
+echo "RUN TEST WITH COMMAND: ${CMD}"
+
+nohup bash -c "${CMD}" 1>/dev/null 2>&1 &

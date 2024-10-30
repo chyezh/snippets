@@ -11,9 +11,9 @@ MILVUS_LOG="${VOLUME}/milvus-logs/"
 
 case "$1" in
 e)
-    tail -f "${MILVUS_LOG}/standalone.stderr"
+    tail -f "${MILVUS_LOG}/standalone.stderr.log"
     ;;
 *)
-    tail -f "${MILVUS_LOG}/standalone.stdout"
+    tail -f "${MILVUS_LOG}/standalone.stdout.log"
     ;;
 esac
