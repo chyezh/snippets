@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+TARGET_BRANCH=${1:-"master"}
+
+git_pull_latest() {
+    STASH_RESULT=$(git stash)
+    git checkout "$TARGET_BRANCH"
+    git pull --rebase
+    git checkout -
+    if [[ $STASH_RESULT != "No local changes to save" ]]; then
+        git stash pop
+    fi
+}
+
+git_pull_latest

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+go_show_coverage() {
+    if [[ -f "coverage.txt" ]]; then
+        go tool cover -html=coverage.txt -o coverage.html
+        code -r coverage.html
+    else
+        echo "No coverage.txt found" >&2
+    fi
+}
+
+go_show_coverage
