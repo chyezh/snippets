@@ -1,0 +1,18 @@
+version: '3.5'
+
+services:
+  filebrowser:
+    container_name: filebrowser
+    image: filebrowser/filebrowser:latest
+    user: "1000"
+    restart: always
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/filebrowser/filebrowser.db:/database
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/filebrowser/.filebrowser.json:/.filebrowser.json
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/filebrowser/root:/srv
+    ports:
+      - "18081:80"
+
+networks:
+  default:
+    name: filebrowser
