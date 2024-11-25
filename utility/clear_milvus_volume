@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+TOPK=${1:-1}
+
+BEGIN_VOLUME=$(find "$MILVUS_VOLUME_DIRECTORY" -mindepth 1 -maxdepth 1 -type d ! -name '.' -printf '%T@ %p\n' | sort -k1,1n | head -n "$TOPK" | cut -d' ' -f2-)
+if [ -z "$BEGIN_VOLUME" ]; then
+    echo "No volume found: ${BEGIN_VOLUME}" >&2
+    exit 1
+fi
+
+echo "The oldest $TOPK directories are:"
+echo "${BEGIN_VOLUME}"
+read -p "Are you sure you want to delete the oldest $TOPK directories? (Y/N): " confirm
+if [[ $confirm != [Yy] ]]; then
+    echo "Operation cancelled."
+    exit 1
+fi
+
+echo "$BEGIN_VOLUME" | xargs -I {} sudo rm -r "{}"
+echo "Deleted $TOPK directories successfully."

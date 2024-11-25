@@ -1,13 +1,15 @@
 #!/bin/bash
 
+TOPK=${1:-1}
+
 find_last_milvus_volume() {
     if [[ -z "$MILVUS_VOLUME_DIRECTORY" || ! -d "$MILVUS_VOLUME_DIRECTORY" ]]; then
         echo "MILVUS_VOLUME_DIRECTORY is not set or not a directory" >&2
         return
     fi
 
-    LAST_VOLUME=$(find "$MILVUS_VOLUME_DIRECTORY" -maxdepth 1 -type d -printf '%T@ %p\n' | sort -k1,1nr | head -n 1 | cut -d' ' -f2-)
-    if [ -d "$LAST_VOLUME" ]; then
+    LAST_VOLUME=$(find "$MILVUS_VOLUME_DIRECTORY" -mindepth 1 -maxdepth 1 -type d ! -name '.' -printf '%T@ %p\n' | sort -k1,1nr | head -n "$TOPK" | cut -d' ' -f2-)
+    if [ -n "$LAST_VOLUME" ]; then
         echo "${LAST_VOLUME}"
     else
         echo "No volume found: ${LAST_VOLUME}" >&2
