@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+curl http://chyezh.local:9091/debug/pprof/goroutine\?debug\=2 -o - | grep 'created by' | sort | uniq -c | sort -k1,1nr | less

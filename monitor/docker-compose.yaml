@@ -4,6 +4,7 @@ services:
   prometheus:
     container_name: prometheus
     image: bitnami/prometheus:latest
+    restart: always
     user: "1000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -16,6 +17,7 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
+    restart: always
     user: "1000"
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/grafana:/var/lib/grafana
