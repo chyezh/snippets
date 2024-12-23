@@ -18,11 +18,11 @@ echo "MILVUS_VOLUME_DIRECTORY: ${MILVUS_VOLUME_DIRECTORY}"
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [-f -a -c -s] [start_milvus|start_milvus_inf|stop_milvus|stop_milvus_inf]"
+    echo "Usage: $0 [-f -a -c -s -k -r] [start_milvus|start_milvus_inf|stop_milvus|stop_milvus_inf]"
     exit 1
 }
 
-while getopts fcsa arg; do
+while getopts fcsakr arg; do
     case $arg in
     f)
         FORCED=1
@@ -35,6 +35,12 @@ while getopts fcsa arg; do
         ;;
     a)
         ASAN_ENABLED=1
+        ;;
+    k)
+        USE_KAFKA=1
+        ;;
+    r)
+        USE_RMQ=1
         ;;
     *)
         usage
@@ -59,14 +65,32 @@ function start_milvus_inf() {
     if [[ -z "${NEW_VOLUME_DIRECTORY}" ]]; then
         generate_new_volume_directory
     fi
+    DOCKER_COMPOSE_FILE="docker-compose-pulsar.yml"
+    if [[ "${USE_KAFKA}" ]]; then
+        echo "Use Kafka..."
+        DOCKER_COMPOSE_FILE="docker-compose-kafka.yml"
+    fi
+    if [[ -n "${USE_RMQ}" ]]; then
+        echo "Use RMQ..."
+        DOCKER_COMPOSE_FILE="docker-compose-rmq.yml"
+    fi
     pushd "$SCRIPT_PATH" || exit 1
-    DOCKER_VOLUME_DIRECTORY="${NEW_VOLUME_DIRECTORY}/docker-volumes/" docker compose up -d
+    DOCKER_VOLUME_DIRECTORY="${NEW_VOLUME_DIRECTORY}/docker-volumes/" docker compose -f "${DOCKER_COMPOSE_FILE}" up -d
     popd || exit 1
 }
 
 function stop_milvus_inf() {
     pushd "$SCRIPT_PATH" || exit 1
-    docker compose down
+    DOCKER_COMPOSE_FILE="docker-compose.yml"
+    if [[ "${USE_KAFKA}" ]]; then
+        echo "Use Kafka..."
+        DOCKER_COMPOSE_FILE="docker-compose-kafka.yml"
+    fi
+    if [[ "${USE_RMQ}" ]]; then
+        echo "Use RMQ..."
+        DOCKER_COMPOSE_FILE="docker-compose-rmq.yml"
+    fi
+    docker compose -f "${DOCKER_COMPOSE_FILE}" down
     popd || exit 1
 }
 
@@ -80,6 +104,8 @@ function start_milvus() {
     pushd "$MILVUS_DEV_PATH" || exit 1
     source "./scripts/setenv.sh"
 
+    export LOG_LEVEL=debug
+
     if [[ -n "${ASAN_ENABLED}" ]]; then
         echo "Use ASAN, disable jemalloc..."
         export LD_PRELOAD=""
@@ -90,24 +116,34 @@ function start_milvus() {
         export MILVUS_STREAMING_SERVICE_ENABLED=1
     fi
 
+    export MQ_TYPE="pulsar"
+    if [[ "${USE_KAFKA}" ]]; then
+        echo "Use Kafka..."
+        export MQ_TYPE="kafka"
+    elif [[ -n "${USE_RMQ}" ]]; then
+        echo "Use RMQ..."
+        export MQ_TYPE="rocksmq"
+        export ROCKSMQ_PATH="${NEW_VOLUME_DIRECTORY}/rocksmq/rdb_data"
+    fi
+
     if [[ -z "${CLUSTER}" ]]; then
         echo "Starting milvus standalone... Log@ ${LOG_PATH}"
-        METRICS_PORT=9091 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout.log" 2>"${LOG_PATH}/standalone.stderr.log" &
+        METRICS_PORT=19091 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout.log" 2>"${LOG_PATH}/standalone.stderr.log" &
     else
         echo "Starting milvus cluster... Log@ ${LOG_PATH}"
         if [[ -z "${STREAMING}" ]]; then
-            METRICS_PORT=9092 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout.log" 2>"${LOG_PATH}/mixcoord.stderr.log" &
-            METRICS_PORT=9093 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout.log" 2>"${LOG_PATH}/proxy.stderr.log" &
-            METRICS_PORT=9094 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout.log" 2>"${LOG_PATH}/querynode.stderr.log" &
-            METRICS_PORT=9095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
-            METRICS_PORT=9096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
+            METRICS_PORT=19092 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout.log" 2>"${LOG_PATH}/mixcoord.stderr.log" &
+            METRICS_PORT=19093 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout.log" 2>"${LOG_PATH}/proxy.stderr.log" &
+            METRICS_PORT=19094 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout.log" 2>"${LOG_PATH}/querynode.stderr.log" &
+            METRICS_PORT=19095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
+            METRICS_PORT=19096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
         else
-            METRICS_PORT=9092 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout.log" 2>"${LOG_PATH}/mixcoord.stderr.log" &
-            METRICS_PORT=9093 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout.log" 2>"${LOG_PATH}/proxy.stderr.log" &
-            METRICS_PORT=9094 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout.log" 2>"${LOG_PATH}/querynode.stderr.log" &
-            METRICS_PORT=9095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
-            METRICS_PORT=9096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
-            METRICS_PORT=9097 ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout.log" 2>"${LOG_PATH}/streamingnode.stderr.log" &
+            METRICS_PORT=19092 ./bin/milvus run mixture -rootcoord -querycoord -datacoord -indexcoord 1>"${LOG_PATH}/mixcoord.stdout.log" 2>"${LOG_PATH}/mixcoord.stderr.log" &
+            METRICS_PORT=19093 ./bin/milvus run proxy 1>"${LOG_PATH}/proxy.stdout.log" 2>"${LOG_PATH}/proxy.stderr.log" &
+            METRICS_PORT=19094 ./bin/milvus run querynode 1>"${LOG_PATH}/querynode.stdout.log" 2>"${LOG_PATH}/querynode.stderr.log" &
+            METRICS_PORT=19095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
+            METRICS_PORT=19096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
+            METRICS_PORT=19097 ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout.log" 2>"${LOG_PATH}/streamingnode.stderr.log" &
         fi
     fi
     popd || exit 1

@@ -8,10 +8,14 @@ scrape_configs:
       - targets: ['localhost:9090']
   - job_name: standalone
     static_configs:
-      - targets: ['host.docker.internal:9089']
+      - targets: ['host.docker.internal:19091']
         labels:
           namespace: milvus
           app_kubernetes_io_name: milvus
+          component: standalone
+          container: standalone
+          pod: standalone
+          service: standalone
     relabel_configs:
       - source_labels: [__address__]
         regex: '(.*)'
