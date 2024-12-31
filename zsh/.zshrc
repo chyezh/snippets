@@ -149,3 +149,7 @@ function jmilvuslt() {
     fi
     cd ${TARGET}
 }
+
+function git_cherry_pick_last_commit() {
+    git cherry-pick "$(git rev-parse "$1")"
+}

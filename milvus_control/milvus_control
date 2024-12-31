@@ -81,7 +81,7 @@ function start_milvus_inf() {
 
 function stop_milvus_inf() {
     pushd "$SCRIPT_PATH" || exit 1
-    DOCKER_COMPOSE_FILE="docker-compose.yml"
+    DOCKER_COMPOSE_FILE="docker-compose-pulsar.yml"
     if [[ "${USE_KAFKA}" ]]; then
         echo "Use Kafka..."
         DOCKER_COMPOSE_FILE="docker-compose-kafka.yml"
