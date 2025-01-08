@@ -153,3 +153,10 @@ function jmilvuslt() {
 function git_cherry_pick_last_commit() {
     git cherry-pick "$(git rev-parse "$1")"
 }
+
+function git_stash_last_commit() {
+    latest_commit=$(git rev-parse HEAD)
+    git reset --hard HEAD~1
+    git stash push -m "Stashed commit: $latest_commit"
+    echo "Stashed commit: $latest_commit"
+}
