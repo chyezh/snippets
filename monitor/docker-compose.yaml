@@ -14,6 +14,28 @@ services:
     ports:
       - "9090:9090"
 
+  pyroscope:
+    container_name: pyroscope
+    image: grafana/pyroscope:latest
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "4040:4040"
+
+  alloy:
+    container_name: alloy
+    image: grafana/alloy:latest
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/alloy/data:/var/lib/alloy/data
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/alloy/config.alloy:/etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
