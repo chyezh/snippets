@@ -1,0 +1,36 @@
+pyroscope.write "write_job_name" {
+        endpoint {
+                url = "http://pyroscope:4040"
+        }
+}
+
+pyroscope.scrape "scrape_job_name" {
+        targets    = [
+                {"__address__" = "host.docker.internal:19091", "service_name" = "standalone"},
+                {"__address__" = "host.docker.internal:19092", "service_name" = "mixcoord"},
+                {"__address__" = "host.docker.internal:19093", "service_name" = "proxy"},
+                {"__address__" = "host.docker.internal:19094", "service_name" = "querynode"},
+                {"__address__" = "host.docker.internal:19095", "service_name" = "datanode"},
+                {"__address__" = "host.docker.internal:19096", "service_name" = "indexnode"},
+                {"__address__" = "host.docker.internal:19097", "service_name" = "streamingnode"},
+        ]
+
+        forward_to = [pyroscope.write.write_job_name.receiver]
+        profiling_config {
+                profile.process_cpu {
+                        enabled = true
+                }
+                profile.memory { // disable memory, use godeltaprof_memory instead
+                        enabled = true
+                }
+                profile.mutex { // disable mutex, use godeltaprof_mutex instead
+                        enabled = true
+                }
+                profile.block { // disable block, use godeltaprof_block instead
+                        enabled = true
+                }
+                profile.goroutine {
+                        enabled = true
+                }
+        }
+}
