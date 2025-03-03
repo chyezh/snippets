@@ -75,7 +75,7 @@ function start_milvus_inf() {
         DOCKER_COMPOSE_FILE="docker-compose-rmq.yml"
     fi
     pushd "$SCRIPT_PATH" || exit 1
-    DOCKER_VOLUME_DIRECTORY="${NEW_VOLUME_DIRECTORY}/docker-volumes/" docker compose -f "${DOCKER_COMPOSE_FILE}" up -d
+    MILVUS_INF_VOLUME_DIRECTORY="${NEW_VOLUME_DIRECTORY}/docker-volumes/" docker compose -f "${DOCKER_COMPOSE_FILE}" up -d
     popd || exit 1
 }
 

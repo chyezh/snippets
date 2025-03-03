@@ -7,9 +7,9 @@ services:
     user: "1000"
     restart: always
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/filebrowser.db:/database
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/.filebrowser.json:/.filebrowser.json
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/root:/srv
+      - ${FILEBROWSER_VOLUME_DIRECTORY:-.}/filebrowser.db:/database
+      - ${FILEBROWSER_VOLUME_DIRECTORY:-.}/.filebrowser.json:/.filebrowser.json
+      - ${FILEBROWSER_VOLUME_DIRECTORY:-.}/root:/srv
     ports:
       - "18081:80"
 

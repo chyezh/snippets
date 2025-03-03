@@ -71,7 +71,7 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#ff00ff,bg=cyan,bold,underline"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git autojump rust golang vscode sudo jsontools history docker kubectl zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-autocomplete)
+plugins=(git autojump rust golang vscode sudo jsontools history docker zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-autocomplete)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -92,6 +92,10 @@ source $ZSH/oh-my-zsh.sh
 export REPOSITORY_PATH="$HOME/repository"
 export MILVUS_DEV_PATH="$REPOSITORY_PATH/chyezh/milvus"
 export MILVUS_VOLUME_DIRECTORY="$HOME/tmp/milvus-volumes"
+export MILVUS_INF_VOLUME_DIRECTORY="$HOME/volumes"
+export MONITOR_VOLUME_DIRECTORY="$MILVUS_INF_VOLUME_DIRECTORY/monitor"
+export FILEBROWSER_VOLUME_DIRECTORY="$MILVUS_INF_VOLUME_DIRECTORY/filebrowser"
+export FILERBOWSER_ROOT_DIRECTORY="$FILEBROWSER_VOLUME_DIRECTORY/root"
 export PATH="$PATH:$HOME/.bin:$REPOSITORY_PATH/chyezh/snippets/milvus_control:$REPOSITORY_PATH/chyezh/snippets/utility"
 
 # Compilation flags
