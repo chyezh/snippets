@@ -9,8 +9,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/prometheus/data:/opt/bitnami/prometheus/data
+      - ${MONITOR_VOLUME_DIRECTORY:-.}/prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+      - ${MONITOR_VOLUME_DIRECTORY:-.}/prometheus/data:/opt/bitnami/prometheus/data
     ports:
       - "9090:9090"
 
@@ -30,8 +30,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/alloy/data:/var/lib/alloy/data
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/alloy/config.alloy:/etc/alloy/config.alloy
+      - ${MONITOR_VOLUME_DIRECTORY:-.}/alloy/data:/var/lib/alloy/data
+      - ${MONITOR_VOLUME_DIRECTORY:-.}/alloy/config.alloy:/etc/alloy/config.alloy
     ports:
       - "12345:12345"
     command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
@@ -42,7 +42,7 @@ services:
     restart: always
     user: "1000"
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/grafana:/var/lib/grafana
+      - ${MONITOR_VOLUME_DIRECTORY:-.}/grafana:/var/lib/grafana
     ports:
       - "3000:3000"
 
