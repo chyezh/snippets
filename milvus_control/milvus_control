@@ -107,6 +107,7 @@ function start_milvus() {
     # export RPATH="$LD_LIBRARY_PATH"
 
     export LOG_LEVEL=debug
+    export MALLOC_CONF="prof:true,lg_prof_sample:1,prof_accum:true:background_thread:true"
 
     if [[ -n "${ASAN_ENABLED}" ]]; then
         echo "Use ASAN, disable jemalloc..."
@@ -128,6 +129,7 @@ function start_milvus() {
         export ROCKSMQ_PATH="${NEW_VOLUME_DIRECTORY}/rocksmq/rdb_data"
     fi
 
+    export
     if [[ -z "${CLUSTER}" ]]; then
         echo "Starting milvus standalone... Log@ ${LOG_PATH}"
         METRICS_PORT=19091 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout.log" 2>"${LOG_PATH}/standalone.stderr.log" &
@@ -146,6 +148,7 @@ function start_milvus() {
             METRICS_PORT=19095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
             METRICS_PORT=19096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
             METRICS_PORT=19097 LOCALSTORAGE_PATH="${NEW_VOLUME_DIRECTORY}/streamingnode/data/" ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout.log" 2>"${LOG_PATH}/streamingnode.stderr.log" &
+            METRICS_PORT=19098 LOCALSTORAGE_PATH="${NEW_VOLUME_DIRECTORY}/streamingnode2/data/" ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode2.stdout.log" 2>"${LOG_PATH}/streamingnode2.stderr.log" &
         fi
     fi
     popd || exit 1
@@ -170,10 +173,16 @@ stop_milvus_inf)
     stop_milvus_inf
     ;;
 start_milvus)
-    start_milvus_inf
     start_milvus
     ;;
 stop_milvus)
+    stop_milvus
+    ;;
+start_milvus_full)
+    start_milvus_inf
+    start_milvus
+    ;;
+stop_milvus_full)
     stop_milvus
     stop_milvus_inf
     ;;

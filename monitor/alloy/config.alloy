@@ -13,6 +13,7 @@ pyroscope.scrape "scrape_job_name" {
                 {"__address__" = "host.docker.internal:19095", "service_name" = "datanode"},
                 {"__address__" = "host.docker.internal:19096", "service_name" = "indexnode"},
                 {"__address__" = "host.docker.internal:19097", "service_name" = "streamingnode"},
+                {"__address__" = "host.docker.internal:19098", "service_name" = "streamingnode-2"},
         ]
 
         forward_to = [pyroscope.write.write_job_name.receiver]
