@@ -22,10 +22,13 @@ usage() {
     exit 1
 }
 
-while getopts fcsakr arg; do
+while getopts fmcsakr arg; do
     case $arg in
     f)
         FORCED=1
+        ;;
+    m)
+        CLUSTERS=1
         ;;
     c)
         CLUSTER=1
@@ -107,6 +110,7 @@ function start_milvus() {
     # export RPATH="$LD_LIBRARY_PATH"
 
     export LOG_LEVEL=debug
+    # export COMMON_SECURITY_AUTHORIZATIONENABLED=true
     export MALLOC_CONF="prof:true,lg_prof_sample:1,prof_accum:true:background_thread:true"
 
     if [[ -n "${ASAN_ENABLED}" ]]; then
@@ -130,7 +134,11 @@ function start_milvus() {
     fi
 
     export
-    if [[ -z "${CLUSTER}" ]]; then
+    if [[ -n "${CLUSTERS}" ]]; then
+        echo "Starting milvus clusters... Log@ ${LOG_PATH}"
+        msgChannel_CHANNAMEPREFIX_CLUSTER=by-dev1 ETCD_ROOTPATH=by-dev1 MINIO_rootPath=by-dev1 METRICS_PORT=19091  ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout.log" 2>"${LOG_PATH}/standalone.stderr.log" &
+        msgChannel_CHANNAMEPREFIX_CLUSTER=by-dev2 ETCD_ROOTPATH=by-dev2 MINIO_rootPath=by-dev2 PROXY_PORT=19531 PROXY_INTERNAL_PORT=19528 ROOTCOORD_PORT=53101 METRICS_PORT=19092 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone2.stdout.log" 2>"${LOG_PATH}/standalone2.stderr.log" &
+    elif [[ -z "${CLUSTER}" ]]; then
         echo "Starting milvus standalone... Log@ ${LOG_PATH}"
         METRICS_PORT=19091 ./bin/milvus run standalone 1>"${LOG_PATH}/standalone.stdout.log" 2>"${LOG_PATH}/standalone.stderr.log" &
     else
@@ -148,7 +156,7 @@ function start_milvus() {
             METRICS_PORT=19095 ./bin/milvus run datanode 1>"${LOG_PATH}/datanode.stdout.log" 2>"${LOG_PATH}/datanode.stderr.log" &
             METRICS_PORT=19096 ./bin/milvus run indexnode 1>"${LOG_PATH}/indexnode.stdout.log" 2>"${LOG_PATH}/indexnode.stderr.log" &
             METRICS_PORT=19097 LOCALSTORAGE_PATH="${NEW_VOLUME_DIRECTORY}/streamingnode/data/" ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode.stdout.log" 2>"${LOG_PATH}/streamingnode.stderr.log" &
-            METRICS_PORT=19098 LOCALSTORAGE_PATH="${NEW_VOLUME_DIRECTORY}/streamingnode2/data/" ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode2.stdout.log" 2>"${LOG_PATH}/streamingnode2.stderr.log" &
+            # METRICS_PORT=19098 LOCALSTORAGE_PATH="${NEW_VOLUME_DIRECTORY}/streamingnode2/data/" ./bin/milvus run streamingnode 1>"${LOG_PATH}/streamingnode2.stdout.log" 2>"${LOG_PATH}/streamingnode2.stderr.log" &
         fi
     fi
     popd || exit 1
