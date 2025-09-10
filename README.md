@@ -35,6 +35,7 @@ such as
 ### Start Milvus
 
 ```bash
+docker network create milvus_inf
 milvus_control -s -c start_milvus_full
 jmilvusll
 ```
