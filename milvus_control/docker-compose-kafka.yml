@@ -36,7 +36,7 @@ services:
       retries: 3
 
   kafka:
-    image: bitnami/kafka:latest
+    image: soldevelo/kafka:latest
     restart: always
     user: "0"
     volumes:
