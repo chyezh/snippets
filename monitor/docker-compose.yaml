@@ -3,7 +3,7 @@ version: '3.5'
 services:
   prometheus:
     container_name: prometheus
-    image: bitnami/prometheus:latest
+    image: soldevelo/prometheus:latest
     restart: always
     user: "1000"
     extra_hosts:
